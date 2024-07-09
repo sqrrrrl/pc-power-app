@@ -6,7 +6,6 @@ import com.example.pcpower.exceptions.InvalidInputProvidedException
 import com.example.pcpower.exceptions.UnexpectedServerErrorException
 import com.example.pcpower.exceptions.UsernameAlreadyInUseException
 import com.example.pcpower.model.ApiError
-import com.example.pcpower.model.ApiErrorDetails
 import com.example.pcpower.model.AuthError
 import com.example.pcpower.model.LoginCredentials
 import com.example.pcpower.model.RegisterCredentials

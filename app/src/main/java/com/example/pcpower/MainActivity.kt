@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.pcpower.screens.HomeScreen
 import com.example.pcpower.screens.LoginScreen
 import com.example.pcpower.screens.Screens
 import com.example.pcpower.ui.theme.PcPowerTheme
@@ -38,8 +39,13 @@ fun PcPowerApp() {
     NavHost(navController = navigationController, startDestination = Screens.LoginScreen.route){
         composable(Screens.LoginScreen.route){
             LoginScreen {
-
+                navigationController.navigate(Screens.HomeScreen.route){
+                    popUpTo(Screens.LoginScreen.route){ inclusive = true }
+                }
             }
+        }
+        composable(Screens.HomeScreen.route){
+            HomeScreen()
         }
     }
 }

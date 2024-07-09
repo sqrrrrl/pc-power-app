@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.pcpower.model.Token
+import kotlinx.coroutines.flow.first
 import java.time.ZoneId
 import java.time.ZonedDateTime
 
@@ -24,5 +25,10 @@ class AuthRepo(private val context: Context) {
             preferences[TOKEN_EXPIRATION_KEY] = ZonedDateTime.parse(token.expire)
                 .withZoneSameInstant(ZoneId.systemDefault()).toEpochSecond()
         }
+    }
+
+    suspend fun getToken(): String{
+        val preferences = context.dataStore.data.first()
+        return preferences[TOKEN_KEY] ?: ""
     }
 }

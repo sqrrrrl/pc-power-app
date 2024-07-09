@@ -1,19 +1,21 @@
 package com.example.pcpower.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcpower.api.PcPowerAPIService
 import com.example.pcpower.exceptions.InvalidInputProvidedException
+import com.example.pcpower.persistance.AuthRepo
 import com.example.pcpower.state.AppState
 import kotlinx.coroutines.launch
 
 const val ERR_PASS_CONFIRM_NOT_EQUAL = "Passwords do not match"
 const val ERR_UNEXPECTED_ERROR = "An unexpected error occurred"
 
-class RegisterViewModel : ViewModel() {
+class RegisterViewModel(application: Application) : AndroidViewModel(application) {
 
     var username by mutableStateOf("")
         private set
@@ -24,6 +26,9 @@ class RegisterViewModel : ViewModel() {
     var errors by mutableStateOf<List<String>>(emptyList())
         private set
     var state by mutableStateOf(AppState.IDLE)
+
+    private var isInitialized = false
+    private lateinit var apiService: PcPowerAPIService
 
     fun changeUsername(username: String){ this.username = username }
 
@@ -41,7 +46,7 @@ class RegisterViewModel : ViewModel() {
         state = AppState.LOADING
         viewModelScope.launch {
             try {
-                PcPowerAPIService.register(username, password, confirm)
+                apiService.register(username, password, confirm)
                 state = AppState.SUCCESS
             }catch (e: InvalidInputProvidedException){
                 errors = e.getErrors()
@@ -51,5 +56,13 @@ class RegisterViewModel : ViewModel() {
                 state = AppState.ERROR
             }
         }
+    }
+
+    fun initialize(){
+        if(isInitialized) return
+        val context = getApplication<Application>().applicationContext
+        val authRepo = AuthRepo(context)
+        apiService = PcPowerAPIService(authRepo)
+        isInitialized = true
     }
 }

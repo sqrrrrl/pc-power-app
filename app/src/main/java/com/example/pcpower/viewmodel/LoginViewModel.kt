@@ -20,7 +20,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     var error by mutableStateOf<String?>(null)
         private set
     var state by mutableStateOf(AppState.IDLE)
-    private val authRepo: AuthRepo
+
+    private var isInitialized = false
+    private lateinit var apiService: PcPowerAPIService
 
     fun changeUsername(username: String){ this.username = username }
 
@@ -31,8 +33,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         state = AppState.LOADING
         viewModelScope.launch {
             try {
-                val token = PcPowerAPIService.login(username, password)
-                authRepo.saveToken(token)
+                apiService.login(username, password)
                 state = AppState.SUCCESS
             }catch (e: Exception){
                 error = e.message
@@ -41,8 +42,11 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    init {
+    fun initialize(){
+        if(isInitialized) return
         val context = getApplication<Application>().applicationContext
-        authRepo = AuthRepo(context)
+        val authRepo = AuthRepo(context)
+        apiService = PcPowerAPIService(authRepo)
+        isInitialized = true
     }
 }

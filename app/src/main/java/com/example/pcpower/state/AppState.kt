@@ -4,5 +4,6 @@ enum class AppState {
     IDLE,
     LOADING,
     SUCCESS,
-    ERROR
+    ERROR,
+    UNAUTHENTICATED
 }

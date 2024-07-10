@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -26,6 +27,9 @@ import com.example.pcpower.viewmodel.RegisterViewModel
 @Composable
 fun RegisterScreen(onSuccess: () -> Unit){
     val registerViewModel = viewModel<RegisterViewModel>()
+    LaunchedEffect(Unit) {
+        registerViewModel.initialize()
+    }
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround
@@ -75,7 +79,9 @@ fun RegisterScreen(onSuccess: () -> Unit){
                 }
             }
             if (registerViewModel.state == AppState.SUCCESS){
-                onSuccess()
+                LaunchedEffect(Unit) {
+                    onSuccess()
+                }
             }
         }
         Column (

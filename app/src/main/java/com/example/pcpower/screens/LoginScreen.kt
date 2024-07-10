@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -32,6 +33,9 @@ import kotlin.math.log
 @Composable
 fun LoginScreen(onSuccess: () -> Unit, goToRegister: () -> Unit){
     val loginViewModel = viewModel<LoginViewModel>()
+    LaunchedEffect(Unit) {
+        loginViewModel.initialize()
+    }
     Column (
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceAround
@@ -70,7 +74,9 @@ fun LoginScreen(onSuccess: () -> Unit, goToRegister: () -> Unit){
                 }
             }
             if (loginViewModel.state == AppState.SUCCESS){
-                onSuccess()
+                LaunchedEffect(Unit) {
+                    onSuccess()
+                }
             }
         }
         Column (

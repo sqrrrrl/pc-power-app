@@ -3,7 +3,7 @@ package com.example.pcpower.api
 import com.example.pcpower.BuildConfig
 import com.example.pcpower.exceptions.InvalidCredentialsException
 import com.example.pcpower.exceptions.InvalidInputProvidedException
-import com.example.pcpower.exceptions.TokenExpiredException
+import com.example.pcpower.exceptions.TokenInvalidException
 import com.example.pcpower.exceptions.UnexpectedServerErrorException
 import com.example.pcpower.exceptions.UsernameAlreadyInUseException
 import com.example.pcpower.model.ApiError
@@ -47,8 +47,18 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
                     BearerTokens(authRepo.getToken(), "")
                 }
                 refreshTokens {
-                    refreshToken()
-                    BearerTokens(authRepo.getToken(), "")
+                    val resp = client.request("/auth/refresh_token") {
+                        method = HttpMethod.Get
+                        markAsRefreshTokenRequest()
+                    }
+                    when(resp.status){
+                        HttpStatusCode.OK -> {
+                            val token: Token = resp.body()
+                            authRepo.saveToken(token)
+                            BearerTokens(token.token, "")
+                        }
+                    }
+                    null
                 }
             }
         }
@@ -93,24 +103,6 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
         }
     }
 
-    suspend fun refreshToken(){
-        val resp = client.request("/auth/refresh-token") {
-            method = HttpMethod.Post
-        }
-        when(resp.status){
-            HttpStatusCode.OK -> {
-                authRepo.saveToken(resp.body<Token>())
-            }
-            HttpStatusCode.Unauthorized -> {
-                val error = resp.body<AuthError>()
-                throw TokenExpiredException(error.message)
-            }
-            else -> {
-                throw UnexpectedServerErrorException()
-            }
-        }
-    }
-
     suspend fun getDevices(): DeviceList{
         val resp = client.request("/user/devices") {
             method = HttpMethod.Get
@@ -118,6 +110,9 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
         when(resp.status){
             HttpStatusCode.OK -> {
                 return resp.body<DeviceList>()
+            }
+            HttpStatusCode.Unauthorized -> {
+                throw TokenInvalidException(resp.body<AuthError>().message)
             }
             else -> {
                 throw UnexpectedServerErrorException()

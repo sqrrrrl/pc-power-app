@@ -5,12 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -19,6 +18,9 @@ import com.example.pcpower.screens.LoginScreen
 import com.example.pcpower.screens.RegisterScreen
 import com.example.pcpower.screens.Screens
 import com.example.pcpower.ui.theme.PcPowerTheme
+import com.example.pcpower.viewmodel.HomeViewModel
+import com.example.pcpower.viewmodel.LoginViewModel
+import com.example.pcpower.viewmodel.RegisterViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +39,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun PcPowerApp() {
     val navigationController = rememberNavController()
-    NavHost(navController = navigationController, startDestination = Screens.LoginScreen.route){
+    NavHost(navController = navigationController, startDestination = Screens.HomeScreen.route){
         composable(Screens.LoginScreen.route){
             LoginScreen(
                 onSuccess = {
@@ -56,7 +58,11 @@ fun PcPowerApp() {
             }
         }
         composable(Screens.HomeScreen.route){
-            HomeScreen()
+            HomeScreen {
+                navigationController.navigate(Screens.LoginScreen.route){
+                    popUpTo(Screens.HomeScreen.route) { inclusive = true }
+                }
+            }
         }
     }
 }

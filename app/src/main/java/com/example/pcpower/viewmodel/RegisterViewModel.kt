@@ -26,8 +26,8 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
     var errors by mutableStateOf<List<String>>(emptyList())
         private set
     var state by mutableStateOf(AppState.IDLE)
+        private set
 
-    private var isInitialized = false
     private lateinit var apiService: PcPowerAPIService
 
     fun changeUsername(username: String){ this.username = username }
@@ -59,10 +59,9 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun initialize(){
-        if(isInitialized) return
+        state = AppState.IDLE
         val context = getApplication<Application>().applicationContext
         val authRepo = AuthRepo(context)
         apiService = PcPowerAPIService(authRepo)
-        isInitialized = true
     }
 }

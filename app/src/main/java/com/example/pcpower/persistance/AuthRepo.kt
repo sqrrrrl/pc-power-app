@@ -27,8 +27,8 @@ class AuthRepo(private val context: Context) {
         }
     }
 
-    suspend fun getToken(): String{
+    suspend fun getToken(): String?{
         val preferences = context.dataStore.data.first()
-        return preferences[TOKEN_KEY] ?: ""
+        return preferences[TOKEN_KEY]
     }
 }

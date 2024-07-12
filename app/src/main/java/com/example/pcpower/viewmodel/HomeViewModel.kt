@@ -6,8 +6,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.pcpower.action.Action
 import com.example.pcpower.api.PcPowerAPIService
 import com.example.pcpower.exceptions.TokenInvalidException
+import com.example.pcpower.model.Device
 import com.example.pcpower.model.DeviceList
 import com.example.pcpower.persistance.AuthRepo
 import com.example.pcpower.state.AppState
@@ -22,6 +24,12 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
     var state by mutableStateOf(AppState.IDLE)
         private set
     var error by mutableStateOf<String?>(null)
+        private set
+    var openInDialog by mutableStateOf<Device?>(null)
+        private set
+    var currentAction by mutableStateOf<Action?>(null)
+        private set
+    var name by mutableStateOf("")
         private set
 
     private lateinit var apiService: PcPowerAPIService
@@ -57,5 +65,60 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
             authRepo.clear()
         }
         state = AppState.UNAUTHENTICATED
+    }
+
+    fun changeName(name: String) { this.name = name }
+
+    fun openDialog(device: Device){ this.openInDialog = device }
+    fun closeDialog() {
+        this.openInDialog = null
+        this.currentAction = null
+    }
+
+    fun changeAction(action: Action) { this.currentAction = action }
+    fun confirmAction(){
+        when(currentAction){
+            Action.POWER_ON, Action.POWER_OFF-> {
+                sendPowerSwitch(openInDialog!!.id, false)
+            }
+            Action.REBOOT -> {
+                sendRebootSwitch(openInDialog!!.id)
+            }
+            Action.FORCE_SHUTDOWN -> {
+                sendPowerSwitch(openInDialog!!.id, true)
+            }
+            Action.DELETE -> {
+                deleteDevice(openInDialog!!.id)
+            }
+            Action.RENAME -> {
+                renameDevice(openInDialog!!.id, name)
+            }
+            Action.CREATE -> {
+                createDevice(name)
+            }
+            else -> {}
+        }
+        name = ""
+        this.closeDialog()
+    }
+
+    private fun sendPowerSwitch(deviceId: String, hard: Boolean){
+        //TODO
+    }
+
+    private fun sendRebootSwitch(deviceId: String){
+        //TODO
+    }
+
+    private fun deleteDevice(deviceId: String){
+        //TODO
+    }
+
+    private fun renameDevice(deviceId: String, newName: String){
+        //TODO
+    }
+
+    private fun createDevice(name: String){
+        //TODO
     }
 }

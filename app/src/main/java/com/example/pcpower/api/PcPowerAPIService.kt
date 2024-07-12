@@ -18,6 +18,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.HttpSend
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.http.HttpMethod
@@ -45,6 +46,10 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
         }
         install(ContentNegotiation){
             json()
+        }
+        install(HttpTimeout){
+            connectTimeoutMillis = 3000
+            requestTimeoutMillis = 10000
         }
     }
 

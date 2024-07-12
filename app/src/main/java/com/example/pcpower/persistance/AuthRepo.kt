@@ -31,4 +31,10 @@ class AuthRepo(private val context: Context) {
         val preferences = context.dataStore.data.first()
         return preferences[TOKEN_KEY]
     }
+
+    suspend fun clear(){
+        context.dataStore.edit {
+            it.clear()
+        }
+    }
 }

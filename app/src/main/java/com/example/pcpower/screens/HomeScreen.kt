@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Density
@@ -65,6 +66,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pcpower.R
 import com.example.pcpower.action.Action
 import com.example.pcpower.model.Device
 import com.example.pcpower.state.AppState
@@ -305,13 +307,8 @@ fun DeviceDialog(online: Boolean, pcStatus: Int, onClick: (Action) -> Unit){
                 horizontalArrangement = Arrangement.SpaceEvenly
             ){
                 if(online){
-                    var powerSwitchAction = Action.POWER_ON
-                    var powerSwitchIcon = Icons.Default.PlayArrow
-                    if(pcStatus == 1){
-                        powerSwitchAction = Action.POWER_OFF
-                        powerSwitchIcon = Icons.Default.Close
-                    }
-                    ActionButton(imageVector = powerSwitchIcon, name = powerSwitchAction.text) {
+                    val powerSwitchAction = if(pcStatus == 0) Action.POWER_ON else Action.POWER_OFF
+                    ActionButton(imageVector = ImageVector.vectorResource(id = R.drawable.powerswitch), name = powerSwitchAction.text) {
                         onClick(powerSwitchAction)
                     }
                 }

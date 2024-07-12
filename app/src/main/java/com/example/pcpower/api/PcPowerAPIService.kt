@@ -130,6 +130,9 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
             setBody(RegisterCredentials(username, password, confirm))
         }
         when(resp.status){
+            HttpStatusCode.NoContent -> {
+                return
+            }
             HttpStatusCode.UnprocessableEntity -> {
                 val error = resp.body<ApiError>().error
                 throw UsernameAlreadyInUseException(error.message)

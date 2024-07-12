@@ -27,34 +27,32 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
     private lateinit var apiService: PcPowerAPIService
     private lateinit var authRepo: AuthRepo
 
-    fun initialize(){
+    fun initialize() {
         state = AppState.LOADING
         val context = getApplication<Application>().applicationContext
         authRepo = AuthRepo(context)
         apiService = PcPowerAPIService(authRepo)
     }
 
-    fun fetchDevices(){
-        viewModelScope.launch {
-            try {
-                devices = apiService.getDevices()
-                state = AppState.IDLE
-            }catch (e: TokenInvalidException){
-                state = AppState.UNAUTHENTICATED
-            }catch (e: Exception){
-                error = ERR_DEVICE_LOAD_FAILED
-                state = AppState.IDLE
-            }
+    suspend fun fetchDevices() {
+        try {
+            devices = apiService.getDevices()
+            state = AppState.IDLE
+        }catch (e: TokenInvalidException){
+            state = AppState.UNAUTHENTICATED
+        }catch (e: Exception){
+            error = ERR_DEVICE_LOAD_FAILED
+            state = AppState.IDLE
         }
     }
 
-    fun collectError(): String?{
+    fun collectError(): String? {
         val tempError = error
         error = null
         return tempError
     }
 
-    fun logout(){
+    fun logout() {
         viewModelScope.launch {
             authRepo.clear()
         }

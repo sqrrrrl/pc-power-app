@@ -114,14 +114,24 @@ fun DeviceCard(device: Device){
     Card(
         modifier = Modifier
             .padding(remember { PaddingValues(20.dp, 10.dp) })
-            .shadowCustom(color = shadowColor, offsetX = 4.dp, offsetY = 4.dp, blurRadius = 4.dp, shapeRadius = 10.dp)
+            .shadowCustom(
+                color = shadowColor,
+                offsetX = 4.dp,
+                offsetY = 4.dp,
+                blurRadius = 4.dp,
+                shapeRadius = 10.dp
+            )
     ) {
         Column (modifier = Modifier.padding(10.dp)){
             Text(text = device.name, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.size(5.dp))
             InfoRow(title = "ID:", info = device.code)
             InfoRow(title = "Secret:", info = device.secret)
-            InfoRow(title = "PC status:", info = if (device.status == 1) "On" else "Off")
+            if(device.online){
+                InfoRow(title = "PC status:", info = if (device.status == 1) "On" else "Off")
+            }else{
+                InfoRow(title = "PC status:", info = "Unknown")
+            }
             InfoRow(title = "Online:", info = if(device.online) "Yes" else "No")
         }
     }

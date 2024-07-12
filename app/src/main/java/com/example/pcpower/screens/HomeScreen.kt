@@ -145,7 +145,7 @@ fun ManageUIInteractions(homeViewModel: HomeViewModel){
     val dialogDevice = homeViewModel.openInDialog
     val currentAction = homeViewModel.currentAction
     if(dialogDevice != null && currentAction == null){
-        DeviceDialog(pcStatus = dialogDevice.status) { action ->
+        DeviceDialog(dialogDevice.online, pcStatus = dialogDevice.status) { action ->
             homeViewModel.changeAction(action)
             if(action == Action.DISMISS){
                 homeViewModel.closeDialog()
@@ -290,7 +290,7 @@ fun ConfirmDialog(action: Action, deviceName: String, onConfirm: () -> Unit, onC
 }
 
 @Composable
-fun DeviceDialog(pcStatus: Int, onClick: (Action) -> Unit){
+fun DeviceDialog(online: Boolean, pcStatus: Int, onClick: (Action) -> Unit){
     val modifier = if(isSystemInDarkTheme()) Modifier else Modifier.background(color = Color.White, shape = RoundedCornerShape(10.dp))
     Dialog(onDismissRequest = { onClick(Action.DISMISS) }) {
         Column (
@@ -302,16 +302,18 @@ fun DeviceDialog(pcStatus: Int, onClick: (Action) -> Unit){
             Spacer(modifier = Modifier.size(10.dp))
             Row (
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceEvenly
             ){
-                var powerSwitchAction = Action.POWER_ON
-                var powerSwitchIcon = Icons.Default.PlayArrow
-                if(pcStatus == 1){
-                    powerSwitchAction = Action.POWER_OFF
-                    powerSwitchIcon = Icons.Default.Close
-                }
-                ActionButton(imageVector = powerSwitchIcon, name = powerSwitchAction.text) {
-                    onClick(powerSwitchAction)
+                if(online){
+                    var powerSwitchAction = Action.POWER_ON
+                    var powerSwitchIcon = Icons.Default.PlayArrow
+                    if(pcStatus == 1){
+                        powerSwitchAction = Action.POWER_OFF
+                        powerSwitchIcon = Icons.Default.Close
+                    }
+                    ActionButton(imageVector = powerSwitchIcon, name = powerSwitchAction.text) {
+                        onClick(powerSwitchAction)
+                    }
                 }
                 if(pcStatus == 1){
                     ActionButton(imageVector = Icons.Default.Refresh, name = Action.REBOOT.text) {

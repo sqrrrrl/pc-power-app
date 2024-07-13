@@ -8,6 +8,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pcpower.action.Action
 import com.example.pcpower.api.PcPowerAPIService
+import com.example.pcpower.exceptions.DeviceCommandFailedException
 import com.example.pcpower.exceptions.TokenInvalidException
 import com.example.pcpower.model.Device
 import com.example.pcpower.model.DeviceList
@@ -16,6 +17,7 @@ import com.example.pcpower.state.AppState
 import kotlinx.coroutines.launch
 
 const val ERR_DEVICE_LOAD_FAILED = "Couldn't load the device list"
+const val ERR_DEVICE_UNREACHABLE = "The device couldn't be reached"
 
 class HomeViewModel(application: Application): AndroidViewModel(application) {
 
@@ -77,33 +79,41 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
 
     fun changeAction(action: Action) { this.currentAction = action }
     fun confirmAction(){
-        when(currentAction){
-            Action.POWER_ON, Action.POWER_OFF-> {
-                sendPowerSwitch(openInDialog!!.id, false)
+        try {
+            when(currentAction){
+                Action.POWER_ON, Action.POWER_OFF -> {
+                    sendPowerSwitch(openInDialog!!.id, false)
+                }
+                Action.REBOOT -> {
+                    sendRebootSwitch(openInDialog!!.id)
+                }
+                Action.FORCE_SHUTDOWN -> {
+                    sendPowerSwitch(openInDialog!!.id, true)
+                }
+                Action.DELETE -> {
+                    deleteDevice(openInDialog!!.id)
+                }
+                Action.RENAME -> {
+                    renameDevice(openInDialog!!.id, name)
+                }
+                Action.CREATE -> {
+                    createDevice(name)
+                }
+                else -> {}
             }
-            Action.REBOOT -> {
-                sendRebootSwitch(openInDialog!!.id)
-            }
-            Action.FORCE_SHUTDOWN -> {
-                sendPowerSwitch(openInDialog!!.id, true)
-            }
-            Action.DELETE -> {
-                deleteDevice(openInDialog!!.id)
-            }
-            Action.RENAME -> {
-                renameDevice(openInDialog!!.id, name)
-            }
-            Action.CREATE -> {
-                createDevice(name)
-            }
-            else -> {}
+        }catch (e: TokenInvalidException){
+            state = AppState.UNAUTHENTICATED
+        }catch (e: DeviceCommandFailedException){
+            error = ERR_DEVICE_UNREACHABLE
         }
         name = ""
         this.closeDialog()
     }
 
     private fun sendPowerSwitch(deviceId: String, hard: Boolean){
-        //TODO
+        viewModelScope.launch {
+            apiService.sendPowerSwitch(deviceId, hard)
+        }
     }
 
     private fun sendRebootSwitch(deviceId: String){

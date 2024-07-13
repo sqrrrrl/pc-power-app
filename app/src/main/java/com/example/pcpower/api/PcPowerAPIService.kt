@@ -2,6 +2,7 @@ package com.example.pcpower.api
 
 import android.util.Log
 import com.example.pcpower.BuildConfig
+import com.example.pcpower.exceptions.DeviceCommandFailedException
 import com.example.pcpower.exceptions.InvalidCredentialsException
 import com.example.pcpower.exceptions.InvalidInputProvidedException
 import com.example.pcpower.exceptions.TokenInvalidException
@@ -9,6 +10,7 @@ import com.example.pcpower.exceptions.UnexpectedServerErrorException
 import com.example.pcpower.exceptions.UsernameAlreadyInUseException
 import com.example.pcpower.model.ApiError
 import com.example.pcpower.model.AuthError
+import com.example.pcpower.model.DeviceCommand
 import com.example.pcpower.model.DeviceList
 import com.example.pcpower.model.LoginCredentials
 import com.example.pcpower.model.RegisterCredentials
@@ -157,6 +159,22 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
             }
             else -> {
                 throw UnexpectedServerErrorException(resp.bodyAsText())
+            }
+        }
+    }
+
+    suspend fun sendPowerSwitch(deviceId: String, hard: Boolean){
+        val resp = client.request("/devices/power-switch"){
+            method = HttpMethod.Post
+            setBody(DeviceCommand(deviceId, hard))
+        }
+        when(resp.status){
+            HttpStatusCode.NoContent -> {
+                return
+            }
+            else -> {
+                val error = resp.body<ApiError>().error
+                throw DeviceCommandFailedException(error.message)
             }
         }
     }

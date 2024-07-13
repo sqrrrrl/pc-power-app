@@ -3,6 +3,7 @@ package com.example.pcpower.api
 import android.util.Log
 import com.example.pcpower.BuildConfig
 import com.example.pcpower.exceptions.DeviceCommandFailedException
+import com.example.pcpower.exceptions.DeviceCreateUpdateInfo
 import com.example.pcpower.exceptions.InvalidCredentialsException
 import com.example.pcpower.exceptions.InvalidInputProvidedException
 import com.example.pcpower.exceptions.TokenInvalidException
@@ -208,6 +209,25 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
         }
         if(resp.status != HttpStatusCode.NoContent){
             throw UnexpectedServerErrorException(resp.bodyAsText())
+        }
+    }
+
+    suspend fun renameDevice(deviceId: String, newName: String){
+        val resp = client.request("/user/devices/$deviceId"){
+            method = HttpMethod.Put
+            setBody(DeviceCreateUpdateInfo(newName))
+        }
+        when(resp.status){
+            HttpStatusCode.OK -> {
+                return
+            }
+            HttpStatusCode.BadRequest -> {
+                val error = resp.body<ApiError>().error
+                throw InvalidInputProvidedException(error.description, error.errors)
+            }
+            else -> {
+                throw UnexpectedServerErrorException(resp.bodyAsText())
+            }
         }
     }
 }

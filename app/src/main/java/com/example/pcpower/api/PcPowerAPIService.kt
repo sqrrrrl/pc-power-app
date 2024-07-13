@@ -157,6 +157,10 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
             HttpStatusCode.OK -> {
                 return resp.body<DeviceList>()
             }
+            HttpStatusCode.ServiceUnavailable -> {
+                val error = resp.body<ApiError>().error
+                throw DeviceCommandFailedException(error.message)
+            }
             else -> {
                 throw UnexpectedServerErrorException(resp.bodyAsText())
             }
@@ -172,9 +176,12 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
             HttpStatusCode.NoContent -> {
                 return
             }
-            else -> {
+            HttpStatusCode.ServiceUnavailable -> {
                 val error = resp.body<ApiError>().error
                 throw DeviceCommandFailedException(error.message)
+            }
+            else -> {
+                throw UnexpectedServerErrorException(resp.bodyAsText())
             }
         }
     }
@@ -192,6 +199,15 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
                 val error = resp.body<ApiError>().error
                 throw DeviceCommandFailedException(error.message)
             }
+        }
+    }
+
+    suspend fun deleteDevice(deviceId: String){
+        val resp = client.request("/user/devices/$deviceId"){
+            method = HttpMethod.Delete
+        }
+        if(resp.status != HttpStatusCode.NoContent){
+            throw UnexpectedServerErrorException(resp.bodyAsText())
         }
     }
 }

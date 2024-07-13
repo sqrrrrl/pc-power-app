@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 
 const val ERR_DEVICE_LOAD_FAILED = "Couldn't load the device list"
 const val ERR_DEVICE_UNREACHABLE = "The device couldn't be reached"
+const val ERR_UNEXPECTED_API_ERROR = "An error occurred while communicating with the api"
 
 class HomeViewModel(application: Application): AndroidViewModel(application) {
 
@@ -105,6 +106,8 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
             state = AppState.UNAUTHENTICATED
         }catch (e: DeviceCommandFailedException){
             error = ERR_DEVICE_UNREACHABLE
+        }catch (e: Exception){
+            error = ERR_UNEXPECTED_API_ERROR
         }
         name = ""
         this.closeDialog()
@@ -123,7 +126,9 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
     }
 
     private fun deleteDevice(deviceId: String){
-        //TODO
+        viewModelScope.launch {
+            apiService.deleteDevice(deviceId)
+        }
     }
 
     private fun renameDevice(deviceId: String, newName: String){

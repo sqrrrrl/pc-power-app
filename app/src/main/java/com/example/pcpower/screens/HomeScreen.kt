@@ -103,12 +103,7 @@ fun HomeScreen(onLogout: () -> Unit){
                     .align(Alignment.Center))
             }
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(homeViewModel.devices.online){
-                    DeviceCard(it){
-                        homeViewModel.openDialog(it)
-                    }
-                }
-                items(homeViewModel.devices.offline){
+                items(homeViewModel.devices){
                     DeviceCard(it){
                         homeViewModel.openDialog(it)
                     }

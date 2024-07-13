@@ -11,6 +11,7 @@ import com.example.pcpower.exceptions.UnexpectedServerErrorException
 import com.example.pcpower.exceptions.UsernameAlreadyInUseException
 import com.example.pcpower.model.ApiError
 import com.example.pcpower.model.AuthError
+import com.example.pcpower.model.Device
 import com.example.pcpower.model.DeviceCommand
 import com.example.pcpower.model.DeviceList
 import com.example.pcpower.model.LoginCredentials
@@ -151,7 +152,7 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
     }
 
     suspend fun getDevices(): DeviceList{
-        val resp = client.request("/user/devices") {
+        val resp = client.request("/user/devices/") {
             method = HttpMethod.Get
         }
         when(resp.status){
@@ -220,6 +221,25 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
         when(resp.status){
             HttpStatusCode.OK -> {
                 return
+            }
+            HttpStatusCode.BadRequest -> {
+                val error = resp.body<ApiError>().error
+                throw InvalidInputProvidedException(error.description, error.errors)
+            }
+            else -> {
+                throw UnexpectedServerErrorException(resp.bodyAsText())
+            }
+        }
+    }
+
+    suspend fun createDevice(name: String): Device{
+        val resp = client.request("/user/devices/"){
+            method = HttpMethod.Post
+            setBody(DeviceCreateUpdateInfo(name))
+        }
+        when(resp.status){
+            HttpStatusCode.OK -> {
+                return resp.body<Device>()
             }
             HttpStatusCode.BadRequest -> {
                 val error = resp.body<ApiError>().error

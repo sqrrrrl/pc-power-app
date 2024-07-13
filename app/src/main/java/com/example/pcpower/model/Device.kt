@@ -8,6 +8,6 @@ data class Device(
     val name: String,
     val code: String,
     val secret: String,
-    val status: Int,
-    val online: Boolean
+    val status: Int = 0,
+    val online: Boolean = false
 )

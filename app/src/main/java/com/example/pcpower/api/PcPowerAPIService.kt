@@ -178,4 +178,20 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
             }
         }
     }
+
+    suspend fun sendResetSwitch(deviceId: String){
+        val resp = client.request("/devices/reset-switch"){
+            method = HttpMethod.Post
+            setBody(DeviceCommand(deviceId))
+        }
+        when(resp.status){
+            HttpStatusCode.NoContent -> {
+                return
+            }
+            else -> {
+                val error = resp.body<ApiError>().error
+                throw DeviceCommandFailedException(error.message)
+            }
+        }
+    }
 }

@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class DeviceCommand(
     @SerialName("device_id")
     val deviceId: String,
-    val hard: Boolean
+    val hard: Boolean = false
 )

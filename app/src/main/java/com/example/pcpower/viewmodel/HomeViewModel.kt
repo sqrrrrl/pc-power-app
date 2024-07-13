@@ -117,7 +117,9 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
     }
 
     private fun sendRebootSwitch(deviceId: String){
-        //TODO
+        viewModelScope.launch {
+            apiService.sendResetSwitch(deviceId)
+        }
     }
 
     private fun deleteDevice(deviceId: String){

@@ -1,7 +1,9 @@
 package com.example.pcpower.viewmodel
 
 import android.app.Application
+import android.devicelock.DeviceId
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -23,7 +25,7 @@ const val ERR_UNEXPECTED_API_ERROR = "An error occurred while communicating with
 
 class HomeViewModel(application: Application): AndroidViewModel(application) {
 
-    var devices by mutableStateOf(DeviceList())
+    var devices = mutableStateListOf<Device>()
         private set
     var state by mutableStateOf(AppState.IDLE)
         private set
@@ -48,7 +50,9 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
 
     suspend fun fetchDevices() {
         try {
-            devices = apiService.getDevices()
+            val deviceList = apiService.getDevices()
+            devices.clear()
+            devices.addAll(deviceList.online.plus(deviceList.offline))
             state = AppState.IDLE
         }catch (e: TokenInvalidException){
             state = AppState.UNAUTHENTICATED
@@ -111,13 +115,21 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
             }
             Action.DELETE -> {
                 apiService.deleteDevice(device!!.id)
+                devices.removeIf { it.id == device.id }
             }
             Action.RENAME -> {
                 apiService.renameDevice(device!!.id, name)
+                devices.forEachIndexed { index, item ->
+                    if(item.id == device.id){
+                        val newDevice = device.copy()
+                        newDevice.name = name
+                        devices[index] = newDevice
+                    }
+                }
             }
             Action.CREATE -> {
                 val newDevice = apiService.createDevice(name)
-                devices = DeviceList(devices.online, devices.offline.plus(newDevice))
+                devices.add(newDevice)
             }
             else -> {}
         }

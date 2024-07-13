@@ -5,9 +5,9 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Device(
     val id: String,
-    val name: String,
+    var name: String,
     val code: String,
     val secret: String,
-    val status: Int = 0,
-    val online: Boolean = false
+    var status: Int = 0,
+    var online: Boolean = false
 )

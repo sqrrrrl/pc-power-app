@@ -116,7 +116,8 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
                 apiService.renameDevice(device!!.id, name)
             }
             Action.CREATE -> {
-                //TODO
+                val newDevice = apiService.createDevice(name)
+                devices = DeviceList(devices.online, devices.offline.plus(newDevice))
             }
             else -> {}
         }

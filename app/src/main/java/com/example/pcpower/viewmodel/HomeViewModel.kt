@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.pcpower.action.Action
 import com.example.pcpower.api.PcPowerAPIService
 import com.example.pcpower.exceptions.DeviceCommandFailedException
+import com.example.pcpower.exceptions.InvalidInputProvidedException
 import com.example.pcpower.exceptions.TokenInvalidException
 import com.example.pcpower.model.Device
 import com.example.pcpower.model.DeviceList
@@ -76,66 +77,48 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
     fun closeDialog() {
         this.openInDialog = null
         this.currentAction = null
+        name = ""
     }
 
     fun changeAction(action: Action) { this.currentAction = action }
     fun confirmAction(){
-        try {
-            when(currentAction){
-                Action.POWER_ON, Action.POWER_OFF -> {
-                    sendPowerSwitch(openInDialog!!.id, false)
-                }
-                Action.REBOOT -> {
-                    sendRebootSwitch(openInDialog!!.id)
-                }
-                Action.FORCE_SHUTDOWN -> {
-                    sendPowerSwitch(openInDialog!!.id, true)
-                }
-                Action.DELETE -> {
-                    deleteDevice(openInDialog!!.id)
-                }
-                Action.RENAME -> {
-                    renameDevice(openInDialog!!.id, name)
-                }
-                Action.CREATE -> {
-                    createDevice(name)
-                }
-                else -> {}
+        viewModelScope.launch {
+            try{
+                doAction(currentAction, openInDialog, name)
+                closeDialog()
+            }catch (e: TokenInvalidException){
+                state = AppState.UNAUTHENTICATED
+            }catch (e: DeviceCommandFailedException) {
+                error = ERR_DEVICE_UNREACHABLE
+            }catch (e: InvalidInputProvidedException){
+                error = e.getErrors().joinToString("\n")
+            }catch (e: Exception){
+                error = ERR_UNEXPECTED_API_ERROR
             }
-        }catch (e: TokenInvalidException){
-            state = AppState.UNAUTHENTICATED
-        }catch (e: DeviceCommandFailedException){
-            error = ERR_DEVICE_UNREACHABLE
-        }catch (e: Exception){
-            error = ERR_UNEXPECTED_API_ERROR
-        }
-        name = ""
-        this.closeDialog()
-    }
-
-    private fun sendPowerSwitch(deviceId: String, hard: Boolean){
-        viewModelScope.launch {
-            apiService.sendPowerSwitch(deviceId, hard)
         }
     }
 
-    private fun sendRebootSwitch(deviceId: String){
-        viewModelScope.launch {
-            apiService.sendResetSwitch(deviceId)
+    private suspend fun doAction(action: Action?, device: Device?, name: String){
+        when(action){
+            Action.POWER_ON, Action.POWER_OFF -> {
+                apiService.sendPowerSwitch(device!!.id, false)
+            }
+            Action.REBOOT -> {
+                apiService.sendResetSwitch(device!!.id)
+            }
+            Action.FORCE_SHUTDOWN -> {
+                apiService.sendPowerSwitch(device!!.id, true)
+            }
+            Action.DELETE -> {
+                apiService.deleteDevice(device!!.id)
+            }
+            Action.RENAME -> {
+                apiService.renameDevice(device!!.id, name)
+            }
+            Action.CREATE -> {
+                //TODO
+            }
+            else -> {}
         }
-    }
-
-    private fun deleteDevice(deviceId: String){
-        viewModelScope.launch {
-            apiService.deleteDevice(deviceId)
-        }
-    }
-
-    private fun renameDevice(deviceId: String, newName: String){
-        //TODO
-    }
-
-    private fun createDevice(name: String){
-        //TODO
     }
 }

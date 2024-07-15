@@ -59,6 +59,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -93,11 +94,11 @@ fun HomeScreen(onLogout: () -> Unit){
     Scaffold (
         topBar = { TopAppBar(
             title = {
-                Text(text = "Home")
+                Text(text = stringResource(R.string.home))
             },
             actions = {
                 IconButton(onClick = { homeViewModel.logout() }) {
-                    Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout")
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ExitToApp, contentDescription = stringResource(R.string.logout))
                 }
             }
         )}
@@ -124,7 +125,7 @@ fun HomeScreen(onLogout: () -> Unit){
                     .offset((-20).dp, (-35).dp),
                 onClick = { homeViewModel.changeAction(Action.CREATE) }
             ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Create new device")
+                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.create_new_device))
             }
             ManageUIInteractions(homeViewModel)
             PullToRefreshContainer(state = pullState, modifier = Modifier.align(Alignment.TopCenter))
@@ -163,7 +164,7 @@ fun ManageUIInteractions(homeViewModel: HomeViewModel){
             Action.RENAME -> {
                 InputDialog(
                     title = "Rename ${dialogDevice?.name}",
-                    placeholder = "name",
+                    placeholder = stringResource(R.string.name),
                     value = homeViewModel.name,
                     onValueChange = { homeViewModel.changeName(it) },
                     onDismiss = { homeViewModel.closeDialog() },
@@ -172,8 +173,8 @@ fun ManageUIInteractions(homeViewModel: HomeViewModel){
             }
             Action.CREATE -> {
                 InputDialog(
-                    title = "Create a new device",
-                    placeholder = "name",
+                    title = stringResource(R.string.create_a_new_device),
+                    placeholder = stringResource(R.string.name),
                     value = homeViewModel.name,
                     onValueChange = { homeViewModel.changeName(it) },
                     onDismiss = { homeViewModel.closeDialog() },
@@ -213,14 +214,14 @@ fun DeviceCard(device: Device, onClick: () -> Unit){
         Column (modifier = Modifier.padding(10.dp)){
             Text(text = device.name, style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.size(5.dp))
-            InfoRow(title = "ID:", info = device.code)
-            InfoRow(title = "Secret:", info = device.secret)
+            InfoRow(title = stringResource(R.string.id_field), info = device.code)
+            InfoRow(title = stringResource(R.string.secret_field), info = device.secret)
             if(device.online){
-                InfoRow(title = "PC status:", info = if (device.status == 1) "On" else "Off")
+                InfoRow(title = stringResource(R.string.pc_status_field), info = if (device.status == 1) stringResource(R.string.on) else stringResource(R.string.off))
             }else{
-                InfoRow(title = "PC status:", info = "Unknown")
+                InfoRow(title = stringResource(R.string.pc_status_field), info = stringResource(R.string.unknown))
             }
-            InfoRow(title = "Online:", info = if(device.online) "Yes" else "No")
+            InfoRow(title = stringResource(R.string.online_field), info = if(device.online) stringResource(R.string.yes) else stringResource(R.string.no))
         }
     }
 }
@@ -260,10 +261,10 @@ fun InputDialog(title: String, placeholder: String, value: String, onValueChange
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Button(onClick = { onValueChange(""); onDismiss() }) {
-                    Text(text = "Cancel")
+                    Text(text = stringResource(R.string.cancel))
                 }
                 Button(onClick = { onSubmit() }) {
-                    Text(text = "Submit")
+                    Text(text = stringResource(id = R.string.submit))
                 }
             }
         }
@@ -275,14 +276,14 @@ fun ConfirmDialog(action: Action, deviceName: String, onConfirm: () -> Unit, onC
     AlertDialog(
         onDismissRequest = { onCancel() },
         title = {
-            Text(text = "Are you sure?")
+            Text(text = stringResource(R.string.confirm_title))
         },
         text = {
             Text(text = "This will ${action.text.lowercase()} $deviceName")
         },
         dismissButton = {
             Button(onClick = { onCancel() }) {
-                Text(text = "Cancel")
+                Text(text = stringResource(id = R.string.cancel))
             }
         },
         confirmButton = {
@@ -304,7 +305,7 @@ fun DeviceDialog(online: Boolean, pcStatus: Int, onClick: (Action) -> Unit){
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ){
-            Text(text = "What do you want to do?", style = MaterialTheme.typography.titleLarge)
+            Text(text = stringResource(R.string.actions_title), style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.size(10.dp))
             Row (
                 modifier = Modifier.fillMaxWidth(),

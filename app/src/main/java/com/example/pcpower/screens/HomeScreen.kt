@@ -43,6 +43,8 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +58,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
@@ -63,6 +66,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pcpower.R
 import com.example.pcpower.action.Action
@@ -74,9 +78,16 @@ import com.example.pcpower.viewmodel.HomeViewModel
 @Composable
 fun HomeScreen(onLogout: () -> Unit){
     val homeViewModel = viewModel<HomeViewModel>()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
     LaunchedEffect(Unit) {
         homeViewModel.initialize()
         homeViewModel.fetchDevices()
+    }
+    LaunchedEffect(lifecycleState) {
+        if(lifecycleState == Lifecycle.State.RESUMED){
+            homeViewModel.fetchDevices()
+        }
     }
     val pullState = rememberPullToRefreshState()
     Scaffold (

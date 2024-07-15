@@ -1,6 +1,5 @@
 package com.example.pcpower.api
 
-import android.util.Log
 import com.example.pcpower.BuildConfig
 import com.example.pcpower.exceptions.DeviceCommandFailedException
 import com.example.pcpower.exceptions.DeviceCreateUpdateInfo
@@ -14,6 +13,7 @@ import com.example.pcpower.model.AuthError
 import com.example.pcpower.model.Device
 import com.example.pcpower.model.DeviceCommand
 import com.example.pcpower.model.DeviceList
+import com.example.pcpower.model.DeviceStatusMessage
 import com.example.pcpower.model.LoginCredentials
 import com.example.pcpower.model.RegisterCredentials
 import com.example.pcpower.model.Token
@@ -34,9 +34,15 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.client.plugins.plugin
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.receiveDeserialized
+import io.ktor.client.plugins.websocket.wss
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
+import io.ktor.serialization.WebsocketDeserializeException
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
+import kotlinx.serialization.json.*
 
 const val ERR_NO_TOKEN = "No token has been found in storage"
 
@@ -54,6 +60,10 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
         install(HttpTimeout){
             connectTimeoutMillis = 3000
             requestTimeoutMillis = 10000
+        }
+        install(WebSockets){
+            contentConverter = KotlinxWebsocketSerializationConverter(Json)
+            pingInterval = 120000
         }
     }
 
@@ -247,6 +257,18 @@ class PcPowerAPIService(private val authRepo: AuthRepo) {
             }
             else -> {
                 throw UnexpectedServerErrorException(resp.bodyAsText())
+            }
+        }
+    }
+
+    suspend fun wsConnect(onMessage: suspend (message: DeviceStatusMessage) -> Unit, shouldClose: () -> Boolean) {
+        client.wss("/user/gateway"){
+            while (!shouldClose()){
+                try {
+                    onMessage(receiveDeserialized())
+                }catch (e: WebsocketDeserializeException){
+                    continue
+                }
             }
         }
     }

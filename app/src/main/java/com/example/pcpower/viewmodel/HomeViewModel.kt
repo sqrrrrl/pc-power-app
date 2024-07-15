@@ -1,7 +1,6 @@
 package com.example.pcpower.viewmodel
 
 import android.app.Application
-import android.devicelock.DeviceId
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -14,14 +13,15 @@ import com.example.pcpower.exceptions.DeviceCommandFailedException
 import com.example.pcpower.exceptions.InvalidInputProvidedException
 import com.example.pcpower.exceptions.TokenInvalidException
 import com.example.pcpower.model.Device
-import com.example.pcpower.model.DeviceList
 import com.example.pcpower.persistance.AuthRepo
 import com.example.pcpower.state.AppState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 const val ERR_DEVICE_LOAD_FAILED = "Couldn't load the device list"
 const val ERR_DEVICE_UNREACHABLE = "The device couldn't be reached"
 const val ERR_UNEXPECTED_API_ERROR = "An error occurred while communicating with the api"
+const val RECONNECT_TIMEOUT_MS = 1000L
 
 class HomeViewModel(application: Application): AndroidViewModel(application) {
 
@@ -46,6 +46,7 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
         val context = getApplication<Application>().applicationContext
         authRepo = AuthRepo(context)
         apiService = PcPowerAPIService(authRepo)
+        viewModelScope.launch { wsListen() }
     }
 
     suspend fun fetchDevices() {
@@ -55,7 +56,7 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
             devices.addAll(deviceList.online.plus(deviceList.offline))
             state = AppState.IDLE
         }catch (e: TokenInvalidException){
-            state = AppState.UNAUTHENTICATED
+            logout()
         }catch (e: Exception){
             error = ERR_DEVICE_LOAD_FAILED
             state = AppState.IDLE
@@ -91,7 +92,7 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
                 doAction(currentAction, openInDialog, name)
                 closeDialog()
             }catch (e: TokenInvalidException){
-                state = AppState.UNAUTHENTICATED
+                logout()
             }catch (e: DeviceCommandFailedException) {
                 error = ERR_DEVICE_UNREACHABLE
             }catch (e: InvalidInputProvidedException){
@@ -132,6 +133,38 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
                 devices.add(newDevice)
             }
             else -> {}
+        }
+    }
+
+    private suspend fun wsListen(){
+        while (state != AppState.UNAUTHENTICATED){
+            try {
+                apiService.wsConnect(
+                    onMessage = { deviceStatus ->
+                        var found = false
+                        devices.forEachIndexed { index, device ->
+                            if(device.id == deviceStatus.id){
+                                found = true
+                                val newDevice = device.copy()
+                                newDevice.status = deviceStatus.status
+                                newDevice.online = deviceStatus.online
+                                devices[index] = newDevice
+                            }
+                        }
+                        if(!found){
+                            fetchDevices()
+                        }
+                    },
+                    shouldClose = {
+                        state == AppState.UNAUTHENTICATED
+                    }
+                )
+            }catch (e: TokenInvalidException){
+                logout()
+            }catch (e: Exception){
+                delay(RECONNECT_TIMEOUT_MS)
+                continue
+            }
         }
     }
 }

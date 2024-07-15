@@ -276,7 +276,7 @@ fun ConfirmDialog(action: Action, deviceName: String, onConfirm: () -> Unit, onC
         },
         confirmButton = {
             Button(onClick = { onConfirm() }) {
-                Text(text = "Confirm")
+                Text(text = action.text)
             }
         },
         containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
